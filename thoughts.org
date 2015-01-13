@@ -1,0 +1,64 @@
+
+* ElectricImp Registration Protocol
+  - How does an electric imp register with our app.
+    - Manual approval - once it asks for registration someone has to
+      look at the request and approve it
+    - Automatic approval based on known shared secret - The electric
+      imp agent has a secret that it uses when it registers.
+    - White list - we have some unique identifier of a specific
+      electric imp (mac address? meh.. or its unique id.. better, but
+      not something that can be transcribed just looking at it.)
+    - If the agent URL for an electric imp is guaranteed stable we can
+      use that as its identifier. Otherwise (and probably better) we
+      use the electric imp's unique id to describe it.
+* Elements of a registered electric imp
+  - unique url
+  - unique id
+  - class - This is 'name' for the combination of agent/device
+    code that is running on this imp. Like our christmas tree
+    star. NOTE: Maybe we should call this something besides class.
+  - class version - the version of the code the agent/device are running
+  - functionality - this is the list of 'functions' that this eimp
+    provides. This is tricky but every listed function is meant to map
+    to a django app and model. Thus we may have a generic "on/off"
+    switch model in some app. Any eimp that says it has this function
+    means that this other django app/model can control this
+    function. This will be handled with generic relations. Other apps
+    register their models with the as_eimp app with a given function name.
+    - Functions include parameters.. an eimp can provide several
+      instances of the same function with different parameters. Like
+      an on/off switch tied to different eimp pins.
+    - Several functions can deal with the same actual eimp i/o.. for
+      instance the light & presence functionality.. it includes a push
+      button used for training. This may be exposed in the django
+      light and presence model as a push button, as well as a generic
+      'switch' functionality.
+    - This is meant to include stuff like:
+      - sensor
+        - Not sure if things like temperature sensor are their own
+          'function' or if there is a generic 'sensor' function
+      - switch
+        - something that can be turned on or off. This does not really
+          include things like PWM.. which means maybe we should have a
+          function for 'light' which contains both a simple on/off
+          light as well as a PWM light (that may include color)
+      - christmas tree star -- this is an example of something very
+        specific and complex. It includes the LED lights, the existing
+        coded animations, the rotary switch, the light sensor (in the
+        imp itself)
+      - rotary switch (or just multi-value switch?)
+      - analog readout - perhaps this also includes things like
+        running average and sample period..
+    - when an eimp is registered all of its functionalities are
+      iterated and the related app/model is instantiated with its parameters.
+    - when a new functionality app/model is registered with us we go
+      through all eimp's that have that functionality and instantiate
+      new app/model objects with the newly registered functionality.
+    - when we get a message from an imp related to a functionality
+      this will cause some sort of message to be passed to the
+      functionality instances (if they exist).. this is where a
+      message queue will probably be necessary (and if not we just
+      use.. signals?) will there be a "simple" way someone can set
+      this all up without having to install some queue service (or do
+      we just say 'celery')
+  
